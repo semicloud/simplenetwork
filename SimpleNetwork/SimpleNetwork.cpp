@@ -8,6 +8,8 @@
 #include <iostream>
 #include <fstream>
 #include "two_layer_net.h"
+#include "collection_utils.h"
+#include "optimizer_sgd.h"
 
 /**
  * \brief
@@ -21,10 +23,6 @@ void load_data(std::filesystem::path const& dir, arma::mat& x_train
 	, arma::mat & t_train, arma::mat & x_test, arma::mat& t_test);
 
 std::filesystem::path data_dir();
-
-void gradient_check();
-
-void print_mat(std::string const& name, arma::mat const& x);
 
 int main()
 {
@@ -56,6 +54,8 @@ int main()
 	out_file.precision(8);
 	out_file.setf(std::ios::fixed);
 
+	ozcode::optimizer*  optimizer = new ozcode::optimizer_sgd(learning_rate);
+
 	for (arma::uword i = 0; i != iter_num; i++)
 	{
 		arma::uvec batch_mask = arma::randperm(train_size, batch_size);
@@ -64,10 +64,12 @@ int main()
 
 		std::map<std::string, arma::mat> grad = network.gradient(x_batch, t_batch);
 
-		network.params()["W1"] -= grad["W1"] * learning_rate;
-		network.params()["b1"] -= grad["b1"] * learning_rate;
-		network.params()["W2"] -= grad["W2"] * learning_rate;
-		network.params()["b2"] -= grad["b2"] * learning_rate;
+		optimizer->update(network.params(), grad);
+
+		//network.params()["W1"] -= grad["W1"] * learning_rate;
+		//network.params()["b1"] -= grad["b1"] * learning_rate;
+		//network.params()["W2"] -= grad["W2"] * learning_rate;
+		//network.params()["b2"] -= grad["b2"] * learning_rate;
 
 		double loss = network.loss(x_train, t_train);
 		vec_train_loss.push_back(loss);
@@ -85,6 +87,8 @@ int main()
 		out_file << "iter " << i + 1 << ", loss: " << loss << std::endl;
 	}
 
+	delete optimizer;
+
 	out_file.close();
 
 	arma::vec v1(vec_train_loss);
@@ -96,29 +100,6 @@ int main()
 	v3.save("d:\\test_acc.txt", arma::raw_ascii, true);
 
 	std::cout << "Done!" << std::endl;
-}
-
-void gradient_check()
-{
-	arma::mat x_train, t_train, x_test, t_test;
-	load_data(data_dir(), x_train, t_train, x_test, t_test);
-
-	const unsigned input_size = unsigned(x_train.n_cols);
-	const unsigned hidden_size = 50;
-	const unsigned output_size = unsigned(t_train.n_cols);
-	ozcode::two_layer_net net(input_size, hidden_size, output_size);
-
-	const arma::mat x_batch = x_train.rows(0, 1);
-	const arma::mat t_batch = t_train.rows(0, 1);
-	auto grad_numerical = net.numerical_gradient(x_batch, t_batch);
-	auto grad_popback = net.gradient(x_batch, t_batch);
-	for (const std::string& n : std::vector<std::string>{ "W1","b1","W2","b2" })
-	{
-		const arma::mat g1 = grad_numerical[n];
-		const arma::mat g2 = grad_popback[n];
-		const double diff = arma::mean(arma::mean(arma::abs(g1 - g2)));
-		std::cout << n << ": " << diff << std::endl;
-	}
 }
 
 
@@ -153,17 +134,6 @@ std::filesystem::path data_dir()
 {
 	return std::filesystem::current_path().parent_path() / "data" / "bin";
 }
-
-void print_mat(std::string const & name, arma::mat const& x)
-{
-	const auto max = x.max();
-	const auto min = x.min();
-	const auto n_rows = x.n_rows;
-	const auto n_cols = x.n_cols;
-	std::cout << name << " is a (" << n_rows << ", " << n_cols <<
-		") matrix with min=" << min << " and max=" << max << std::endl;
-}
-
 
 // 运行程序: Ctrl + F5 或调试 >“开始执行(不调试)”菜单
 // 调试程序: F5 或调试 >“开始调试”菜单

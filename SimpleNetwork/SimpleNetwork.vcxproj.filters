@@ -45,6 +45,15 @@
     <ClInclude Include="gradient.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="optimizer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="optimizer_sgd.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="collection_utils.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -71,8 +80,14 @@
     <ClCompile Include="gradient.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="optimizer_sgd.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="Code.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="README.md" />
   </ItemGroup>
 </Project>

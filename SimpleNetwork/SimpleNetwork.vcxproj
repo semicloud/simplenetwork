@@ -167,6 +167,7 @@ copy C:\SDK\armadillo-9.700.3\examples\lib_win64\lapack_win64_MT.dll $(TargetDir
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="collection_utils.h" />
     <ClInclude Include="functions.h" />
     <ClInclude Include="gradient.h" />
     <ClInclude Include="layer.h" />
@@ -175,6 +176,8 @@ copy C:\SDK\armadillo-9.700.3\examples\lib_win64\lapack_win64_MT.dll $(TargetDir
     <ClInclude Include="layer_sigmoid.h" />
     <ClInclude Include="layer_softmax_with_loss.h" />
     <ClInclude Include="my_debug.h" />
+    <ClInclude Include="optimizer.h" />
+    <ClInclude Include="optimizer_sgd.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="two_layer_net.h" />
   </ItemGroup>
@@ -184,6 +187,7 @@ copy C:\SDK\armadillo-9.700.3\examples\lib_win64\lapack_win64_MT.dll $(TargetDir
     <ClCompile Include="layer_relu.cpp" />
     <ClCompile Include="layer_sigmoid.cpp" />
     <ClCompile Include="layer_softmax_with_loss.cpp" />
+    <ClCompile Include="optimizer_sgd.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -195,6 +199,9 @@ copy C:\SDK\armadillo-9.700.3\examples\lib_win64\lapack_win64_MT.dll $(TargetDir
   </ItemGroup>
   <ItemGroup>
     <Text Include="Code.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="README.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

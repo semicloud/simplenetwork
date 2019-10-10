@@ -34,3 +34,110 @@ arma::arma_rng::set_seed_random();
 	arma::vec sm = ozcode::softmax(x);
 	std::cout << sm << std::endl;
 	std::cout << "the sum is " << arma::accu(sm) << std::endl;
+
+
+
+
+
+
+	/**
+	 * The original test 
+	 *
+	 **/
+	void test1()
+{
+	arma::mat x_train, t_train, x_test, t_test;
+	load_data(data_dir(), x_train, t_train, x_test, t_test);
+
+	const unsigned input_size = unsigned(x_train.n_cols);
+	const unsigned hidden_size = 50;
+	const unsigned output_size = unsigned(t_train.n_cols);
+	ozcode::two_layer_net network(input_size, hidden_size, output_size);
+
+	const int iter_num = 10000;
+	const arma::uword train_size = x_train.n_rows;
+	const arma::uword batch_size = 100;
+	const double learning_rate = 0.1;
+
+	std::vector<double> vec_train_loss;
+	std::vector<double> vec_train_acc;
+	std::vector<double> vec_test_acc;
+
+	const arma::uword iter_per_epoch = std::max(train_size / batch_size, 1ull);
+
+	std::cout.precision(8);
+	std::cout.setf(std::ios::fixed);
+
+	if (std::filesystem::exists("d:\\network_log.txt"))
+		std::filesystem::remove("d:\\network_log.txt");
+	std::ofstream out_file("d:\\network_log.txt", std::ios::app);
+	out_file.precision(8);
+	out_file.setf(std::ios::fixed);
+
+	for (arma::uword i = 0; i != iter_num; i++)
+	{
+		arma::uvec batch_mask = arma::randperm(train_size, batch_size);
+		arma::mat x_batch = x_train.rows(batch_mask);
+		arma::mat t_batch = t_train.rows(batch_mask);
+
+		std::map<std::string, arma::mat> grad = network.gradient(x_batch, t_batch);
+
+		network.params()["W1"] -= grad["W1"] * learning_rate;
+		network.params()["b1"] -= grad["b1"] * learning_rate;
+		network.params()["W2"] -= grad["W2"] * learning_rate;
+		network.params()["b2"] -= grad["b2"] * learning_rate;
+
+		double loss = network.loss(x_train, t_train);
+		vec_train_loss.push_back(loss);
+
+		if (i % iter_per_epoch == 0)
+		{
+			double train_acc = network.accuracy(x_train, t_train);
+			double test_acc = network.accuracy(x_test, t_test);
+			vec_train_acc.push_back(train_acc);
+			vec_test_acc.push_back(test_acc);
+			std::cout << "train acc, test_acc: " << train_acc << ", " << test_acc << std::endl;
+			out_file << "train acc, test_acc: " << train_acc << ", " << test_acc << std::endl;
+		}
+		std::cout << "iter " << i + 1 << ", loss: " << loss << std::endl;
+		out_file << "iter " << i + 1 << ", loss: " << loss << std::endl;
+	}
+
+	out_file.close();
+
+	arma::vec v1(vec_train_loss);
+	arma::vec v2(vec_train_acc);
+	arma::vec v3(vec_test_acc);
+
+	v1.save("d:\\train_loss.txt", arma::raw_ascii, true);
+	v2.save("d:\\train_acc.txt", arma::raw_ascii, true);
+	v3.save("d:\\test_acc.txt", arma::raw_ascii, true);
+
+	std::cout << "Done!" << std::endl;
+}
+
+
+
+
+void gradient_check()
+{
+	arma::mat x_train, t_train, x_test, t_test;
+	load_data(data_dir(), x_train, t_train, x_test, t_test);
+
+	const unsigned input_size = unsigned(x_train.n_cols);
+	const unsigned hidden_size = 50;
+	const unsigned output_size = unsigned(t_train.n_cols);
+	ozcode::two_layer_net net(input_size, hidden_size, output_size);
+
+	const arma::mat x_batch = x_train.rows(0, 1);
+	const arma::mat t_batch = t_train.rows(0, 1);
+	auto grad_numerical = net.numerical_gradient(x_batch, t_batch);
+	auto grad_popback = net.gradient(x_batch, t_batch);
+	for (const std::string& n : std::vector<std::string>{ "W1","b1","W2","b2" })
+	{
+		const arma::mat g1 = grad_numerical[n];
+		const arma::mat g2 = grad_popback[n];
+		const double diff = arma::mean(arma::mean(arma::abs(g1 - g2)));
+		std::cout << n << ": " << diff << std::endl;
+	}
+}
