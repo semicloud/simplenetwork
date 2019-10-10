@@ -1,0 +1,36 @@
+arma::arma_rng::set_seed_random();
+	std::cout << "Hello World!\n";
+	arma::mat m = arma::randu(3, 3);
+	m.transform([](double d) {return d >= 0.5 ? d : -d; });
+	m.print("matrix:");
+	ozcode::layer* relu = new ozcode::layer_relu("relu");
+	ozcode::layer* sigmoid = new ozcode::layer_sigmoid("sigmoid");
+	//ozcode::layer_affine* affine = new ozcode::layer_affine();
+	std::vector<ozcode::layer*> layers{ relu, sigmoid };
+
+	for (auto it = layers.begin(); it != layers.end(); ++it)
+		std::cout << (*it)->name() << std::endl;
+
+	std::cout << "And we then reverse the order of layers:" << std::endl;
+	for (auto it = layers.rbegin(); it != layers.rend(); ++it)
+		std::cout << (*it)->name() << std::endl;
+
+	arma::mat m1 = relu->forward(m);
+	m1.print("after relu forward:");
+
+	arma::mat m2 = sigmoid->forward(m1);
+	m2.print("after sigmoid:");
+
+	for (auto layer : layers)
+		delete(layer);
+
+	arma::rowvec b{ 1,2,3 };
+	b.print("rowvec:");
+
+	arma::mat B = arma::repmat(b, 3, 1);
+	B.print("repelem:");
+
+	arma::vec x{ 0.2,0.4,0.1 };
+	arma::vec sm = ozcode::softmax(x);
+	std::cout << sm << std::endl;
+	std::cout << "the sum is " << arma::accu(sm) << std::endl;
