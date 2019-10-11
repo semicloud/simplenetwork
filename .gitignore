@@ -5,6 +5,7 @@
 
 data/
 *.xlsx
+.idea/
 
 # User-specific files
 *.rsuser
