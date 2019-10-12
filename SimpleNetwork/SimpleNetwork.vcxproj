@@ -177,9 +177,11 @@ copy C:\SDK\armadillo-9.700.3\examples\lib_win64\lapack_win64_MT.dll $(TargetDir
     <ClInclude Include="layer_softmax_with_loss.h" />
     <ClInclude Include="my_debug.h" />
     <ClInclude Include="optimizer.h" />
+    <ClInclude Include="optimizer_adagrad.h" />
     <ClInclude Include="optimizer_sgd.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="two_layer_net.h" />
+    <ClInclude Include="optimizer_momentum.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="gradient.cpp" />
@@ -187,6 +189,8 @@ copy C:\SDK\armadillo-9.700.3\examples\lib_win64\lapack_win64_MT.dll $(TargetDir
     <ClCompile Include="layer_relu.cpp" />
     <ClCompile Include="layer_sigmoid.cpp" />
     <ClCompile Include="layer_softmax_with_loss.cpp" />
+    <ClCompile Include="optimizer_adagrad.cpp" />
+    <ClCompile Include="optimizer_momentum.cpp" />
     <ClCompile Include="optimizer_sgd.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

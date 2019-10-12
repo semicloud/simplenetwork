@@ -1,21 +1,22 @@
-#pragma once
+#ifndef LAYER_SIGMOID_H
+#define LAYER_SIGMOID_H
 
 #include <armadillo>
 #include <string>
 #include "layer.h"
 
-namespace ozcode
-{
-	class layer_sigmoid : public layer
-	{
-	private:
-		arma::mat m_out;
+namespace ozcode {
+class LayerSigmoid : public Layer {
+ public:
+  LayerSigmoid() = default;
+  LayerSigmoid(std::string const& layer_name) : Layer(layer_name) {}
+  ~LayerSigmoid() = default;
+  arma::mat Forward(arma::mat const& x) override;
+  arma::mat Backward(arma::mat const& dout) override;
 
-	public:
-		layer_sigmoid() = default;
-		layer_sigmoid(std::string const& layer_name) : layer(layer_name) {}
-		~layer_sigmoid() = default;
-		arma::mat forward(arma::mat const& x) override;
-		arma::mat backward(arma::mat const & dout) override;
-	};
-}
+ private:
+  arma::mat out_;
+};
+}  // namespace ozcode
+
+#endif

@@ -1,20 +1,24 @@
-#pragma once
+#ifndef LAYER_H
+#define LAYER_H
 
 #include <armadillo>
 #include <string>
 
 namespace ozcode {
-	class layer {
-	protected:
-		std::string m_name;
-	public:
-		virtual ~layer() = default;
-		layer() = default;
-		layer(std::string const& name) : m_name(name) {}
-		virtual arma::mat forward(arma::mat const &x) = 0;
-		virtual arma::mat backward(arma::mat const &x) = 0;
+class Layer {
+ public:
+  virtual ~Layer() = default;
+  Layer() = default;
+  Layer(std::string const &name) : name_(name) {}
+  virtual arma::mat Forward(arma::mat const &x) = 0;
+  virtual arma::mat Backward(arma::mat const &x) = 0;
 
-		std::string name() const { return m_name; }
-	};
+  std::string name() const { return name_; }
 
-} // namespace ozcode
+ protected:
+  std::string name_;
+};
+
+}  // namespace ozcode
+
+#endif

@@ -1,19 +1,18 @@
 #include "pch.h"
+// a comment
 #include "layer_softmax_with_loss.h"
 
-
-double ozcode::layer_softmax_with_loss::forward(arma::mat const& x, arma::mat const& t)
-{
-	m_t = t;
-	m_y = ozcode::softmax(x, 1);
-	m_loss = ozcode::cross_entropy_loss(m_y, m_t);
-	return m_loss;
+double ozcode::LayerSoftmaxWithLoss::Forward(arma::mat const& x,
+                                             arma::mat const& t) {
+  t_ = t;
+  y_ = ozcode::Softmax(x, 1);
+  loss_ = ozcode::CrossEntropyLoss(y_, t_);
+  return loss_;
 }
 
-arma::mat ozcode::layer_softmax_with_loss::backward(double dout = 1)
-{
-	const arma::uword batch_size = m_t.n_rows;
-	// dx is a m*n matrix, which m is record number, n is feature dim
-	arma::mat dx = (m_y - m_t) / double(batch_size);
-	return dx;
+arma::mat ozcode::LayerSoftmaxWithLoss::Backward(double dout = 1) {
+  const arma::uword batch_size = t_.n_rows;
+  // dx is a m*n matrix, which m is record number, n is feature dim
+  arma::mat dx = (y_ - t_) / double(batch_size);
+  return dx;
 }

@@ -1,18 +1,16 @@
 #include "pch.h"
+// a comment
 #include "layer_sigmoid.h"
 
-arma::mat ozcode::layer_sigmoid::forward(arma::mat const& x)
-{
-	const arma::mat out = 1.0 / (1 + arma::exp(-x));
-	m_out = out;
-	return out;
+arma::mat ozcode::LayerSigmoid::Forward(arma::mat const& x) {
+  const arma::mat out = 1.0 / (1 + arma::exp(-x));
+  out_ = out;
+  return out;
 }
 
-arma::mat ozcode::layer_sigmoid::backward(arma::mat const& dout)
-{
-	arma::arma_assert_same_size(m_out, dout,
-		"layer_sigmoid backward matrix size incorrect!");
-	arma::mat dx = dout % (1.0 - m_out) % m_out;
-	return dx;
+arma::mat ozcode::LayerSigmoid::Backward(arma::mat const& dout) {
+  arma::arma_assert_same_size(out_, dout,
+                              "layer_sigmoid backward matrix size incorrect!");
+  arma::mat dx = dout % (1.0 - out_) % out_;
+  return dx;
 }
-
