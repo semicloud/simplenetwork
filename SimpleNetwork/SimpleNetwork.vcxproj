@@ -180,6 +180,7 @@ copy C:\SDK\armadillo-9.700.3\examples\lib_win64\lapack_win64_MT.dll $(TargetDir
     <ClInclude Include="optimizer_adagrad.h" />
     <ClInclude Include="optimizer_sgd.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="simple_network.h" />
     <ClInclude Include="two_layer_net.h" />
     <ClInclude Include="optimizer_momentum.h" />
   </ItemGroup>
@@ -198,7 +199,7 @@ copy C:\SDK\armadillo-9.700.3\examples\lib_win64\lapack_win64_MT.dll $(TargetDir
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="SimpleNetwork.cpp" />
+    <ClCompile Include="simple_network.cpp" />
     <ClCompile Include="two_layer_net.cpp" />
   </ItemGroup>
   <ItemGroup>

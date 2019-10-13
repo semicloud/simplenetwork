@@ -12,6 +12,8 @@
 
 // TODO: 添加要在此处预编译的标头
 #include <armadillo>
+#include <algorithm>
+#include <memory>
 #include <filesystem>
 #include <map>
 #include <string>

@@ -60,12 +60,12 @@
     <ClInclude Include="optimizer_adagrad.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="simple_network.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="SimpleNetwork.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="layer_relu.cpp">
@@ -93,6 +93,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="optimizer_adagrad.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="simple_network.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
