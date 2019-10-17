@@ -176,6 +176,7 @@ copy C:\SDK\armadillo-9.700.3\examples\lib_win64\lapack_win64_MT.dll $(TargetDir
     <ClInclude Include="layer_sigmoid.h" />
     <ClInclude Include="layer_softmax_with_loss.h" />
     <ClInclude Include="my_debug.h" />
+    <ClInclude Include="n_layer_network.h" />
     <ClInclude Include="optimizer.h" />
     <ClInclude Include="optimizer_adagrad.h" />
     <ClInclude Include="optimizer_sgd.h" />
@@ -183,13 +184,17 @@ copy C:\SDK\armadillo-9.700.3\examples\lib_win64\lapack_win64_MT.dll $(TargetDir
     <ClInclude Include="simple_network.h" />
     <ClInclude Include="two_layer_net.h" />
     <ClInclude Include="optimizer_momentum.h" />
+    <ClInclude Include="weight_distribution.h" />
+    <ClInclude Include="weight_init_mechanism.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="gradient.cpp" />
+    <ClCompile Include="layer.cpp" />
     <ClCompile Include="layer_affine.cpp" />
     <ClCompile Include="layer_relu.cpp" />
     <ClCompile Include="layer_sigmoid.cpp" />
     <ClCompile Include="layer_softmax_with_loss.cpp" />
+    <ClCompile Include="n_layer_network.cpp" />
     <ClCompile Include="optimizer_adagrad.cpp" />
     <ClCompile Include="optimizer_momentum.cpp" />
     <ClCompile Include="optimizer_sgd.cpp" />
@@ -201,9 +206,11 @@ copy C:\SDK\armadillo-9.700.3\examples\lib_win64\lapack_win64_MT.dll $(TargetDir
     </ClCompile>
     <ClCompile Include="simple_network.cpp" />
     <ClCompile Include="two_layer_net.cpp" />
+    <ClCompile Include="weight_distribution.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Code.txt" />
+    <Text Include="CompareGradient.txt" />
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />

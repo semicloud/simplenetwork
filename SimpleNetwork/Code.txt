@@ -141,3 +141,59 @@ void gradient_check()
 		std::cout << n << ": " << diff << std::endl;
 	}
 }
+
+
+
+
+
+void CompareGradient(){
+
+arma::mat x_train, t_train, x_test, t_test;
+	LoadData(data_dir(), x_train, t_train, x_test, t_test);
+
+	const unsigned input_size = static_cast<unsigned>(x_train.n_cols);
+	const unsigned output_size = static_cast<unsigned>(t_train.n_cols);
+
+	const arma::uword train_size = x_train.n_rows;
+	const arma::uword iter_per_epoch = std::max(train_size / kBatchSize, 1ull);
+
+	std::cout.precision(8);
+	std::cout.setf(std::ios::fixed);
+
+	//! Line below is very important
+	//! Armadillo will not generate random permutations without this line
+	arma::arma_rng::set_seed_random();
+
+	auto optimizer_settings = GetOptimizerSetting();
+
+	for (auto const& setting : optimizer_settings)
+	{
+		std::cout << "for " << setting.first << std::endl;
+
+		std::ofstream ofs(setting.first, std::ios::app);
+		ofs.precision(8);
+		ofs.setf(std::ios::fixed);
+
+		ozcode::TwoLayerNet network(input_size, kHiddenSize, output_size);
+
+		for (arma::uword i = 0; i != kIterNum; i++) {
+			arma::uvec batch_mask = arma::randperm(train_size, kBatchSize);
+			arma::mat x_batch = x_train.rows(batch_mask);
+			arma::mat t_batch = t_train.rows(batch_mask);
+
+			
+			std::map<std::string, arma::mat> grad =
+				network.CalculateGradient(x_batch, t_batch);
+
+			setting.second->Update(network.params(), grad);
+
+			double loss = network.CalculateLoss(x_train, t_train);
+
+			std::cout << loss << std::endl;
+			ofs << loss << std::endl;
+		}
+
+	}
+	std::cout << "Done!" << std::endl;
+
+}

@@ -4,75 +4,64 @@
 #include "pch.h"
 // a comment
 #include "simple_network.h"
+#include "n_layer_network.h"
 #include <armadillo>
-#include <cmath>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
-#include "collection_utils.h"
-#include "optimizer_sgd.h"
-#include "two_layer_net.h"
 #include "optimizer_momentum.h"
-#include "optimizer_adagrad.h"
+#include "optimizer_sgd.h"
 
 const unsigned kHiddenSize = 50;
 const int kIterNum = 2000;
-const arma::uword kBatchSize = 100;
-const double kLearningRate = 0.1;
+const arma::uword kBatchSize = 128;
+const double kLearningRate = 0.01;
 
 int main()
 {
 	arma::mat x_train, t_train, x_test, t_test;
-	LoadData(data_dir(), x_train, t_train, x_test, t_test);
+	LoadData(data_dir(), x_train, t_train, x_test, t_test, false);
 
-	const unsigned input_size = static_cast<unsigned>(x_train.n_cols);
-	const unsigned output_size = static_cast<unsigned>(t_train.n_cols);
+	const arma::uword input_size = 784;
+	const arma::uword node_num = 100;
+	const std::vector<arma::uword> hidden_layer_node_nums{ 100,100,100,100 };
+	const arma::uword output_size = 10;
 
-	const arma::uword train_size = x_train.n_rows;
-	const arma::uword iter_per_epoch = std::max(train_size / kBatchSize, 1ull);
+	arma::arma_rng::set_seed(42);
+	std::stringstream ss;
+	ss.precision(9);
+	ss.setf(std::ios::fixed);
 
-	std::cout.precision(8);
-	std::cout.setf(std::ios::fixed);
+	ozcode::NLayerNetwork network(input_size, hidden_layer_node_nums, output_size, ozcode::Xavier);
+	network.Print(std::cout);
+	ozcode::OptimizerMomentum optimizer(kLearningRate);
 
-	//! Line below is very important
-	//! Armadillo will not generate random permutations without this line
-	arma::arma_rng::set_seed_random();
-
-	auto optimizer_settings = GetOptimizerSetting();
-
-	for (auto const& setting : optimizer_settings)
+	for (int i = 0; i != kIterNum; ++i)
 	{
-		std::cout << "for " << setting.first << std::endl;
-
-		std::ofstream ofs(setting.first, std::ios::app);
-		ofs.precision(8);
-		ofs.setf(std::ios::fixed);
-
-		ozcode::TwoLayerNet network(input_size, kHiddenSize, output_size);
-
-		for (arma::uword i = 0; i != kIterNum; i++) {
-			arma::uvec batch_mask = arma::randperm(train_size, kBatchSize);
-			arma::mat x_batch = x_train.rows(batch_mask);
-			arma::mat t_batch = t_train.rows(batch_mask);
-
-			
-			std::map<std::string, arma::mat> grad =
-				network.CalculateGradient(x_batch, t_batch);
-
-			setting.second->Update(network.params(), grad);
-
-			double loss = network.CalculateLoss(x_train, t_train);
-
-			std::cout << loss << std::endl;
-			ofs << loss << std::endl;
-		}
-
+		const arma::uvec choices(arma::randperm(x_train.n_rows, kBatchSize));
+		const arma::mat x_batch(x_train.rows(choices));
+		const arma::mat t_batch(t_train.rows(choices));
+		const auto grads = network.CalculateGradient(x_batch, t_batch);
+		optimizer.Update(network.params(), grads);
+		double loss = network.CalculateLoss(x_batch, t_batch);
+		ss << loss << "\n";
+		if (i % 100 == 0)
+			std::cout << "iter " << i << ", loss=" << loss << std::endl;
 	}
-	std::cout << "Done!" << std::endl;
+
+	/*std::filesystem::path output("xavier_momentum.txt");
+	if (std::filesystem::exists(output))
+		std::filesystem::remove(output);
+	std::ofstream ofs(output, std::ios::app);
+	ofs << ss.str();
+	ofs.flush();
+	ofs.close();*/
+
+	return 0;
 }
 
 void LoadData(std::filesystem::path const& dir, arma::mat& x_train,
-	arma::mat& t_train, arma::mat& x_test, arma::mat& t_test) {
+	arma::mat& t_train, arma::mat& x_test, arma::mat& t_test, bool print) {
 	if (!std::filesystem::exists(dir)) {
 		std::cerr << dir << " not exist!" << std::endl;
 		exit(EXIT_FAILURE);
@@ -86,38 +75,20 @@ void LoadData(std::filesystem::path const& dir, arma::mat& x_train,
 	t_train.load(t_train_path.string(), arma::arma_binary, true);
 	x_test.load(x_test_path.string(), arma::arma_binary, true);
 	t_test.load(t_test_path.string(), arma::arma_binary, true);
-	std::cout << "... x_train[" << x_train.n_rows << ", " << x_train.n_cols
-		<< "] loaded ..." << std::endl;
-	std::cout << "... t_train[" << t_train.n_rows << ", " << t_train.n_cols
-		<< "] loaded ..." << std::endl;
-	std::cout << "... x_test[" << x_test.n_rows << ", " << x_test.n_cols
-		<< "] loaded ..." << std::endl;
-	std::cout << "... t_test[" << t_test.n_rows << ", " << t_test.n_cols
-		<< "] loaded ..." << std::endl;
+	if (print)
+	{
+		std::cout << "... x_train[" << x_train.n_rows << ", " << x_train.n_cols
+			<< "] loaded ...\n";
+		std::cout << "... t_train[" << t_train.n_rows << ", " << t_train.n_cols
+			<< "] loaded ...\n";
+		std::cout << "... x_test[" << x_test.n_rows << ", " << x_test.n_cols
+			<< "] loaded ...\n";
+		std::cout << "... t_test[" << t_test.n_rows << ", " << t_test.n_cols
+			<< "] loaded ..." << std::endl;
+	}
 }
 
-std::map<std::filesystem::path, std::shared_ptr<ozcode::Optimizer>> GetOptimizerSetting()
-{
-	std::map<std::filesystem::path, std::shared_ptr<ozcode::Optimizer>> settings;
 
-	const auto output_dir = experiment_dir() / "optimize";
-	std::filesystem::path sgd_output_path = output_dir / "sgd.txt";
-	remove_if_exist(sgd_output_path);
-	std::filesystem::path momentum_output_path = output_dir / "momentum.txt";
-	remove_if_exist(momentum_output_path);
-	std::filesystem::path adagrad_output_path = output_dir / "adagrad.txt";
-	remove_if_exist(adagrad_output_path);
-
-	std::shared_ptr<ozcode::Optimizer> sgd(new ozcode::OptimizerSgd(kLearningRate));
-	std::shared_ptr<ozcode::Optimizer> momentum(new ozcode::OptimizerMomentum(kLearningRate));
-	std::shared_ptr<ozcode::Optimizer> adagrad(new ozcode::OptimizerAdaGrad(kLearningRate));
-
-	settings.insert(std::make_pair(sgd_output_path, sgd));
-	settings.insert(std::make_pair(momentum_output_path, momentum));
-	settings.insert(std::make_pair(adagrad_output_path, adagrad));
-
-	return settings;
-}
 
 // 运行程序: Ctrl + F5 或调试 >“开始执行(不调试)”菜单
 // 调试程序: F5 或调试 >“开始调试”菜单

@@ -2,7 +2,6 @@
 #define LAYER_AFFINE_H
 
 #include <armadillo>
-#include <memory>
 #include "layer.h"
 
 namespace ozcode {
@@ -23,6 +22,18 @@ namespace ozcode {
 		 */
 		arma::mat Backward(arma::mat const& dout) override;
 
+		std::pair<arma::uword, arma::uword> w_shape() const
+		{
+			std::pair<arma::uword, arma::uword> ans{ w_->n_rows, w_->n_cols };
+			return ans;
+		}
+
+		std::pair<arma::uword, arma::uword> b_shape() const
+		{
+			std::pair<arma::uword, arma::uword> ans{ b_->n_rows, b_->n_cols };
+			return ans;
+		}
+
 		/**
 		 * \brief get the dW which is updated when backward
 		 * \return
@@ -34,6 +45,8 @@ namespace ozcode {
 		 * \return get the db which is updated when backward
 		 */
 		arma::mat db() const { return db_; }
+
+		arma::mat W() const { return *w_; }
 
 	private:
 		arma::mat* w_;

@@ -18,5 +18,9 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <regex>
+#include <boost/format.hpp>
+#include <boost/lexical_cast.hpp>
+
 
 #endif  // PCH_H

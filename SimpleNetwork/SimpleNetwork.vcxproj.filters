@@ -63,6 +63,15 @@
     <ClInclude Include="simple_network.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="n_layer_network.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="weight_distribution.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="weight_init_mechanism.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -98,9 +107,19 @@
     <ClCompile Include="simple_network.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="n_layer_network.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="weight_distribution.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="layer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="Code.txt" />
+    <Text Include="CompareGradient.txt" />
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />

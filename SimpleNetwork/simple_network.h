@@ -11,7 +11,7 @@
  * \param t_test
  */
 void LoadData(std::filesystem::path const& dir, arma::mat& x_train,
-	arma::mat& t_train, arma::mat& x_test, arma::mat& t_test);
+	arma::mat& t_train, arma::mat& x_test, arma::mat& t_test, bool print);
 
 inline std::filesystem::path data_dir()
 {
@@ -40,6 +40,6 @@ inline void remove_if_exist(std::filesystem::path const& f)
  * \brief 将三种算法的输出文件和指针放到一个map中
  * \return
  */
-std::map<std::filesystem::path, std::shared_ptr<ozcode::Optimizer>> GetOptimizerSetting();
+std::map<std::filesystem::path, std::shared_ptr<ozcode::Optimizer>> GetOptimizerSetting() = delete;
 #endif
 
