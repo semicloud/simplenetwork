@@ -6,9 +6,11 @@
 #include "simple_network.h"
 #include "n_layer_network.h"
 #include <armadillo>
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <chrono>
 #include "optimizer_momentum.h"
 #include "optimizer_sgd.h"
 
@@ -19,6 +21,7 @@ const double kLearningRate = 0.01;
 
 int main()
 {
+	auto start = std::chrono::high_resolution_clock::now();
 	arma::mat x_train, t_train, x_test, t_test;
 	LoadData(data_dir(), x_train, t_train, x_test, t_test, false);
 
@@ -27,35 +30,57 @@ int main()
 	const std::vector<arma::uword> hidden_layer_node_nums{ 100,100,100,100 };
 	const arma::uword output_size = 10;
 
-	arma::arma_rng::set_seed(42);
+	arma::arma_rng::set_seed_random();
+
+	std::cout.precision(9);
+	std::cout.setf(std::ios::fixed);
+
+	ozcode::NLayerNetwork sigma_network(input_size, hidden_layer_node_nums, output_size, ozcode::Sigma);
+	ozcode::NLayerNetwork xavier_network(input_size, hidden_layer_node_nums, output_size, ozcode::Xavier);
+	ozcode::NLayerNetwork he_network(input_size, hidden_layer_node_nums, output_size, ozcode::He);
+	std::vector<ozcode::NLayerNetwork> networks{ sigma_network, xavier_network, he_network };
+
+	ozcode::OptimizerMomentum  optimizer1(kLearningRate);
+	ozcode::OptimizerMomentum  optimizer2(kLearningRate);
+	ozcode::OptimizerMomentum  optimizer3(kLearningRate);
+	std::vector<ozcode::OptimizerMomentum> optimizers{ optimizer1, optimizer2,optimizer3 };
+
 	std::stringstream ss;
 	ss.precision(9);
 	ss.setf(std::ios::fixed);
-
-	ozcode::NLayerNetwork network(input_size, hidden_layer_node_nums, output_size, ozcode::Xavier);
-	network.Print(std::cout);
-	ozcode::OptimizerMomentum optimizer(kLearningRate);
-
+	ss << "Sigma" << "\t" << "Xavier" << "\t" << "He" << "\n";
 	for (int i = 0; i != kIterNum; ++i)
 	{
-		const arma::uvec choices(arma::randperm(x_train.n_rows, kBatchSize));
-		const arma::mat x_batch(x_train.rows(choices));
-		const arma::mat t_batch(t_train.rows(choices));
-		const auto grads = network.CalculateGradient(x_batch, t_batch);
-		optimizer.Update(network.params(), grads);
-		double loss = network.CalculateLoss(x_batch, t_batch);
-		ss << loss << "\n";
+		std::vector<double> the_loss{ 0,0,0 };
+		for (size_t j = 0; j != networks.size(); j++)
+		{
+			const arma::uvec choices(arma::randperm(x_train.n_rows, kBatchSize));
+			const arma::mat x_batch(x_train.rows(choices));
+			const arma::mat t_batch(t_train.rows(choices));
+			const auto grads = networks.at(j).CalculateGradient(x_batch, t_batch);
+			optimizers.at(j).Update(networks.at(j).params(), grads);
+			double loss = networks.at(j).CalculateLoss(x_batch, t_batch);
+			the_loss.at(j) = loss;
+		}
+		ss << the_loss.at(0) << "\t" << the_loss.at(1) << "\t" << the_loss.at(2) << "\n";
 		if (i % 100 == 0)
-			std::cout << "iter " << i << ", loss=" << loss << std::endl;
+		{
+			std::cout << "Loss(i=" << i << "):\nSigma:" << the_loss.at(0) <<
+				"\nXavier:" << the_loss.at(1) << "\nHe:" << the_loss.at(2) << "\n" << std::endl;
+		}
 	}
 
-	/*std::filesystem::path output("xavier_momentum.txt");
+	std::filesystem::path output("weight_init_compare.txt");
 	if (std::filesystem::exists(output))
 		std::filesystem::remove(output);
-	std::ofstream ofs(output, std::ios::app);
+	std::ofstream ofs(output.c_str(), std::ios::app);
 	ofs << ss.str();
-	ofs.flush();
-	ofs.close();*/
+	ofs.close();
+
+	auto stop = std::chrono::high_resolution_clock::now();
+
+	auto duration = std::chrono::duration_cast<std::chrono::seconds>(stop - start);
+	std::cout << "over.. cost " << duration.count() << " seconds.." << std::endl;
 
 	return 0;
 }

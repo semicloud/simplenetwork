@@ -14,7 +14,7 @@ namespace ozcode
 	class NLayerNetwork
 	{
 	public:
-		NLayerNetwork() = delete;
+		NLayerNetwork();
 
 		/**
 		 * \brief 构建N层神经网络
@@ -39,6 +39,14 @@ namespace ozcode
 			std::vector<arma::uword> const& hidden_layer_node_nums,
 			arma::uword output_size,
 			ozcode::WeightInitMechanism mechanism);
+
+		NLayerNetwork(const NLayerNetwork& other);
+
+		NLayerNetwork& operator=(const NLayerNetwork& rhs);
+
+		NLayerNetwork(NLayerNetwork&& other) noexcept;
+
+		NLayerNetwork& operator=(NLayerNetwork&& rhs) noexcept;
 
 		~NLayerNetwork();
 
@@ -88,6 +96,8 @@ namespace ozcode
 		{
 			return (boost::format("%1%%2%") % prefix % i).str();
 		}
+
+		void free();
 	};
 
 }

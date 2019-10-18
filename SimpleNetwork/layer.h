@@ -7,11 +7,17 @@
 namespace ozcode {
 	class Layer {
 	public:
-		virtual ~Layer() = default;
-		Layer() = default;
+		Layer() : name_() {}
 		Layer(std::string const &name) : name_(name) {}
+		virtual ~Layer() {}
+		Layer(Layer const& other);
+		Layer& operator=(Layer const& rhs);
+		Layer(Layer&& other) noexcept;
+		Layer& operator=(Layer&& rhs) noexcept;
+
 		virtual arma::mat Forward(arma::mat const &x) = 0;
 		virtual arma::mat Backward(arma::mat const &x) = 0;
+		virtual Layer* clone() const = 0;
 
 		std::string name() const { return name_; }
 

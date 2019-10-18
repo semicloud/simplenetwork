@@ -15,11 +15,13 @@ void ozcode::OptimizerMomentum::Update(
 			v_[key] = arma::mat(arma::size(tmp), arma::fill::zeros);
 		}
 	}
-
+	//std::cout << arma::accu(params["W0"]) << std::endl;
 	for (std::string const& key : keys)
 	{
 		arma::mat dw = grads.find(key)->second;
 		v_[key] = momentum_ * v_[key] - learning_rate_ * dw;
 		params[key] += v_[key];
 	}
+	//std::cout << arma::accu(params["W0"]) << std::endl;
+
 }

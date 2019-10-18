@@ -3,6 +3,31 @@
 #include <regex>
 #include <boost/lexical_cast.hpp>
 
+ozcode::Layer::Layer(Layer const& other) : name_(other.name_)
+{
+}
+
+ozcode::Layer& ozcode::Layer::operator=(Layer const& rhs)
+{
+	name_ = rhs.name_;
+	return *this;
+}
+
+ozcode::Layer::Layer(Layer&& other) noexcept : name_(other.name_)
+{
+	other.name_ = "";
+}
+
+ozcode::Layer& ozcode::Layer::operator=(Layer&& rhs) noexcept
+{
+	if (this != &rhs)
+	{
+		name_ = rhs.name_;
+		rhs.name_ = "";
+	}
+	return *this;
+}
+
 int ozcode::Layer::index() const
 {
 	const std::regex re("\\d+");

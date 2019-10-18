@@ -6,6 +6,10 @@
 #include <boost/format.hpp>
 
 
+ozcode::NLayerNetwork::NLayerNetwork() : input_size_(0), hidden_layer_node_nums_(), hidden_layer_num_(0), output_size_(0), weight_init_mechanism_(Sigma), params_(), layers_(), last_layer_(nullptr)
+{
+}
+
 ozcode::NLayerNetwork::NLayerNetwork(arma::uword input_size,
 	std::vector<arma::uword> const& hidden_layer_node_nums,
 	arma::uword output_size) :
@@ -21,7 +25,8 @@ ozcode::NLayerNetwork::NLayerNetwork(arma::uword input_size,
 	hidden_layer_node_nums_(hidden_layer_node_nums),
 	hidden_layer_num_(hidden_layer_node_nums.size()),
 	output_size_(output_size),
-	weight_init_mechanism_(weight_init_mechanism)
+	weight_init_mechanism_(weight_init_mechanism),
+	params_(), layers_(), last_layer_(nullptr)
 {
 	//! 调用GetLayerShapes前必须初始化hidden_layer_node_nums_、input_size_、output_size_成员
 	std::vector<std::pair<arma::uword, arma::uword>> const layer_shapes = GetLayerShapes();
@@ -51,13 +56,92 @@ ozcode::NLayerNetwork::NLayerNetwork(arma::uword input_size,
 	last_layer_ = new ozcode::LayerSoftmaxWithLoss();
 }
 
+ozcode::NLayerNetwork::NLayerNetwork(const NLayerNetwork& other)
+	: input_size_(other.input_size_), hidden_layer_node_nums_(other.hidden_layer_node_nums_),
+	hidden_layer_num_(other.hidden_layer_num_), output_size_(other.output_size_),
+	weight_init_mechanism_(other.weight_init_mechanism_), params_(other.params_), layers_(), last_layer_()
+{
+	/* 这里，在拷贝了params_之后，params_中参数矩阵的地址已经改了，因此这里需要更新一下AffineLayer中的指针地址*/
+	/* ! 获取有更好的设计？是否应该禁止拷贝这个对象？那应该如何把该对象放入vector中呢？ */
+	for (Layer* layer : other.layers_)
+	{
+		Layer* p_layer = layer->clone();
+		LayerAffine* p_layer_affine = dynamic_cast<LayerAffine*>(p_layer);
+		if (p_layer_affine != nullptr)
+		{
+			const std::string w_name = GetName("W", p_layer_affine->index()), b_name = GetName("b", p_layer_affine->index());
+			p_layer_affine->UpdatePointer(&params_[w_name], &params_[b_name]);
+		}
+		layers_.push_back(p_layer);
+	}
+	last_layer_ = new LayerSoftmaxWithLoss(*other.last_layer_);
+}
+
+ozcode::NLayerNetwork& ozcode::NLayerNetwork::operator=(const NLayerNetwork& rhs)
+{
+	if (this != &rhs)
+	{
+		free();
+		input_size_ = rhs.input_size_;
+		hidden_layer_node_nums_ = rhs.hidden_layer_node_nums_;
+		hidden_layer_num_ = rhs.hidden_layer_num_;
+		output_size_ = rhs.output_size_;
+		weight_init_mechanism_ = rhs.weight_init_mechanism_;
+		params_ = rhs.params_;
+		for (Layer* layer : rhs.layers_)
+			layers_.push_back(layer->clone());
+		last_layer_ = new LayerSoftmaxWithLoss(*rhs.last_layer_);
+	}
+	return *this;
+}
+
+ozcode::NLayerNetwork::NLayerNetwork(NLayerNetwork&& other) noexcept
+	: input_size_(other.input_size_), hidden_layer_node_nums_(std::move(other.hidden_layer_node_nums_)),
+	hidden_layer_num_(other.hidden_layer_num_), output_size_(other.output_size_),
+	weight_init_mechanism_(other.weight_init_mechanism_), params_(std::move(other.params_)),
+	layers_(), last_layer_(nullptr)
+{
+	for (Layer* layer : other.layers_)
+		layers_.push_back(layer->clone());
+	last_layer_ = new LayerSoftmaxWithLoss(*other.last_layer_);
+	other.free();
+}
+
+ozcode::NLayerNetwork& ozcode::NLayerNetwork::operator=(NLayerNetwork&& rhs) noexcept
+{
+	if (this != &rhs)
+	{
+		free();
+		input_size_ = rhs.input_size_;
+		hidden_layer_node_nums_ = rhs.hidden_layer_node_nums_;
+		hidden_layer_num_ = rhs.hidden_layer_num_;
+		output_size_ = rhs.output_size_;
+		weight_init_mechanism_ = rhs.weight_init_mechanism_;
+		params_ = rhs.params_;
+		for (Layer* layer : rhs.layers_)
+			layers_.push_back(layer->clone());
+		last_layer_ = new LayerSoftmaxWithLoss(*rhs.last_layer_);
+		rhs.input_size_ = 0;
+		rhs.hidden_layer_node_nums_.clear();
+		rhs.hidden_layer_num_ = 0;
+		rhs.output_size_ = 0;
+		rhs.params_.clear();
+		rhs.free();
+	}
+	return *this;
+}
+
+
 ozcode::NLayerNetwork::~NLayerNetwork()
 {
 	delete last_layer_;
+	last_layer_ = nullptr;
 	for (Layer* hidden_layer : layers_)
 		delete hidden_layer;
 	layers_.clear();
 }
+
+
 
 void ozcode::NLayerNetwork::Print(std::ostream& os) const
 {
@@ -69,7 +153,7 @@ void ozcode::NLayerNetwork::Print(std::ostream& os) const
 		if (p != nullptr)
 		{
 			os << ",Affine, shape: " << p->w_shape().first << "x" << p->w_shape().second
-				<< ", b shape: " << p->b_shape().first << "x" << p->b_shape().second << "\n";
+				<< "sum=" << arma::accu(p->W()) << ", b shape: " << p->b_shape().first << "x" << p->b_shape().second << "\n";
 			os << "mean: " << arma::accu(p->W()) / p->W().size() << "\n";
 		}
 		else
@@ -81,6 +165,7 @@ void ozcode::NLayerNetwork::Print(std::ostream& os) const
 
 double ozcode::NLayerNetwork::CalculateLoss(arma::mat const& x, arma::mat const& t)
 {
+	//std::cout << arma::accu(dynamic_cast<LayerAffine*>(layers_[0])->W()) << std::endl;
 	const arma::mat y_hat = Predict(x);
 	const double loss = last_layer_->Forward(y_hat, t);
 	return loss;
@@ -185,5 +270,14 @@ std::vector<std::pair<arma::uword, arma::uword>> ozcode::NLayerNetwork::GetLayer
 		layer_shapes.push_back(shape);
 	}
 	return layer_shapes;
+}
+
+void ozcode::NLayerNetwork::free()
+{
+	for (Layer* layer : layers_)
+		delete layer;
+	layers_.clear();
+	delete last_layer_;
+	last_layer_ = nullptr;
 }
 

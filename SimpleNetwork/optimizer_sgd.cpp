@@ -1,5 +1,4 @@
 #include "pch.h"
-// disable clang-format reorder includes
 #include "assert.h"
 #include "collection_utils.h"
 #include "optimizer_sgd.h"

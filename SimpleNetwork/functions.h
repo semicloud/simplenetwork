@@ -1,4 +1,5 @@
-#pragma once
+#ifndef FUNCTIONS_H
+#define FUNCTIONS_H
 
 #include <armadillo>
 #include "my_debug.h"
@@ -115,3 +116,5 @@ namespace ozcode {
 	}
 
 }  // namespace ozcode
+
+#endif
